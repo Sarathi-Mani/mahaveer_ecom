@@ -1,0 +1,41 @@
+@extends('admin.layouts.app')
+
+@section('title', 'Admin Dashboard')
+@section('page-title', 'Dashboard')
+
+@section('content')
+<div class="container mt-3">
+      @if(session('success'))
+      <div class="alert alert-danger alert-dismissible fade show " role="alert">
+                    {{ session('success') }}
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+   
+@endif
+        <h2>Add Category</h2>
+        <form action="{{ route('admin.categories.store') }}" method="POST" enctype="multipart/form-data">
+		@csrf
+          <div class="mb-3">
+            <label for="category" class="form-label">Category</label>
+            <input type="text" class="form-control" id="category" placeholder="Category" name="name">
+            <div id="error1" style="color:red"></div>
+          </div>
+          <div class="mb-3">
+            <label for="category" class="form-label">Image</label>
+            <input type="file" class="form-control" id="image" placeholder="Category" name="image">
+            <div id="error1" style="color:red"></div>
+          </div>
+          <div class="mb-3">
+            <label for="category" class="form-label">Status</label>
+            <select class="form-control" id="status" placeholder="Category" name="status">
+                <option value="1">Active</option>
+            <option value="0">Inactive</option>
+        </select>
+            <div id="error1" style="color:red"></div>
+          </div>
+          <button type="submit" onclick="return validation_Category()" name="save" class="btn btn-primary">Submit</button>
+        </form>
+      </div>
+@endsection
