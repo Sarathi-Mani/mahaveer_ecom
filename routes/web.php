@@ -15,6 +15,8 @@ Route::get('/', [HomeController::class, 'index'])
         ->name('home');
 Route::get('/products', [ProductController::class, 'index'])
         ->name('products.index');
+Route::post('/search/suggestions', [ProductController::class, 'suggestions'])
+        ->name('search.suggestions');
 
 Route::get('/dashboard', function () {
     return view('dashboard');

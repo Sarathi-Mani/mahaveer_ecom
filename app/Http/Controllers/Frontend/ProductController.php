@@ -12,6 +12,8 @@ class ProductController extends Controller
     {
         $selectedBrand = $request->integer('brand');
         $selectedCategory = $request->integer('category');
+        $searchQuery = trim((string) $request->get('q', ''));
+        $section = strtolower((string) $request->get('section', ''));
 
         $brandFilter = DB::table('brands as b')
             ->leftJoin('products as p', function ($join) {
@@ -63,6 +65,29 @@ class ProductController extends Controller
             $productsQuery->where('p.category_id', $selectedCategory);
         }
 
+        if (in_array($section, ['wall', 'floor', 'accessories'], true)) {
+            $productsQuery->where(function ($query) use ($section) {
+                if ($section === 'wall') {
+                    $query->where('c.slug', 'like', '%wall%')
+                        ->orWhere('c.name', 'like', '%wall%');
+                } elseif ($section === 'floor') {
+                    $query->where('c.slug', 'like', '%floor%')
+                        ->orWhere('c.name', 'like', '%floor%');
+                } else {
+                    $query->where('c.slug', 'like', '%accessor%')
+                        ->orWhere('c.name', 'like', '%accessor%')
+                        ->orWhere('c.slug', 'like', '%sanitary%')
+                        ->orWhere('c.name', 'like', '%sanitary%')
+                        ->orWhere('c.slug', 'like', '%faucet%')
+                        ->orWhere('c.name', 'like', '%faucet%');
+                }
+            });
+        }
+
+        if ($searchQuery !== '') {
+            $productsQuery->where('p.name', 'like', '%' . $searchQuery . '%');
+        }
+
         $products = $productsQuery->paginate(9)->withQueryString();
 
         return view('frontend.products.index', [
@@ -71,7 +96,39 @@ class ProductController extends Controller
             'categoryFilter' => $categoryFilter,
             'selectedBrand' => $selectedBrand,
             'selectedCategory' => $selectedCategory,
+            'searchQuery' => $searchQuery,
+            'section' => $section,
         ]);
     }
-}
 
+    public function suggestions(Request $request)
+    {
+        $query = trim((string) $request->get('query', ''));
+
+        if (mb_strlen($query) < 2) {
+            return response('');
+        }
+
+        $products = DB::table('products')
+            ->where('status', 1)
+            ->where('name', 'like', '%' . $query . '%')
+            ->select('name')
+            ->distinct()
+            ->orderBy('name', 'ASC')
+            ->limit(8)
+            ->get();
+
+        if ($products->isEmpty()) {
+            return response('<div class="p-2 text-muted small">No results found</div>');
+        }
+
+        $html = '';
+        foreach ($products as $product) {
+            $name = e($product->name);
+            $url = route('products.index', ['q' => $product->name]);
+            $html .= '<a href="' . e($url) . '" class="d-block px-3 py-2 text-dark border-bottom small">' . $name . '</a>';
+        }
+
+        return response($html);
+    }
+}
