@@ -247,5 +247,72 @@
 .progress-bar {
     border-radius: 10px;
 }
+
+/* Global typography tune-down to match old PHP pages */
+html {
+    font-size: 14px;
+}
+
+body {
+    font-size: 14px;
+}
+
+p,
+li,
+a,
+label,
+input,
+textarea,
+button {
+    font-size: 0.95rem;
+}
+
+h1,
+.h1 {
+    font-size: 2rem;
+}
+
+h2,
+.h2 {
+    font-size: 1.75rem;
+}
+
+h3,
+.h3 {
+    font-size: 1.5rem;
+}
+
+h4,
+.h4 {
+    font-size: 1.2rem;
+}
+
+h5,
+.h5 {
+    font-size: 1.05rem;
+}
+
+h6,
+.h6 {
+    font-size: 0.95rem;
+}
+
+.display-1,
+.display-2,
+.display-3,
+.display-4,
+.display-5,
+.display-6 {
+    font-size: 1.75rem !important;
+    line-height: 1.2;
+}
+
+.nav-bar .navbar .navbar-nav .nav-link {
+    font-size: 15px !important;
+}
+
+.btn {
+    font-size: 0.92rem;
+}
        
     

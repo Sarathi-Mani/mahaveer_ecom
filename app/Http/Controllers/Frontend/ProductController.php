@@ -8,87 +8,94 @@ use Illuminate\Support\Facades\DB;
 
 class ProductController extends Controller
 {
+    public function accessories(Request $request)
+    {
+        $request->merge([
+            'section' => 'accessories',
+        ]);
+
+        return $this->index($request);
+    }
+
     public function index(Request $request)
     {
-        $selectedBrand = $request->integer('brand');
-        $selectedCategory = $request->integer('category');
+        $selectedBrand = (int) $request->get('brand', 0);
+        $selectedCategory = (int) $request->get('category', 0);
         $searchQuery = trim((string) $request->get('q', ''));
         $section = strtolower((string) $request->get('section', ''));
 
-        $brandFilter = DB::table('brands as b')
-            ->leftJoin('products as p', function ($join) {
-                $join->on('p.brand_id', '=', 'b.id')
-                    ->where('p.status', '=', 1);
-            })
-            ->where('b.status', 1)
-            ->select('b.id', 'b.name', DB::raw('COUNT(p.id) as products_count'))
-            ->groupBy('b.id', 'b.name')
-            ->orderBy('b.name', 'ASC')
-            ->get();
+        // Sidebar brand list
+        $brandFilter = DB::table('brands')
+            ->where('status', 1)
+            ->orderBy('name', 'asc')
+            ->get(['id', 'name']);
 
-        $categoryFilter = DB::table('categories as c')
-            ->leftJoin('products as p', function ($join) {
-                $join->on('p.category_id', '=', 'c.id')
-                    ->where('p.status', '=', 1);
-            })
-            ->where('c.status', 1)
-            ->select('c.id', 'c.name', DB::raw('COUNT(p.id) as products_count'))
-            ->groupBy('c.id', 'c.name')
-            ->orderBy('c.name', 'ASC')
-            ->get();
+        // Sidebar category list
+        $categoryFilter = DB::table('categories')
+            ->where('status', 1)
+            ->orderBy('name', 'asc')
+            ->get(['id', 'name']);
 
-        $productsQuery = DB::table('products as p')
-            ->leftJoin('categories as c', 'p.category_id', '=', 'c.id')
-            ->leftJoin('brands as b', 'p.brand_id', '=', 'b.id')
-            ->where('p.status', 1)
-            ->where('b.status', 1)
+        // Base query for products
+        $productsQuery = DB::table('products')
+            ->leftJoin('categories', 'products.category_id', '=', 'categories.id')
+            ->leftJoin('brands', 'products.brand_id', '=', 'brands.id')
+            ->where('products.status', 1)
+            ->where('brands.status', 1)
             ->select(
-                'p.*',
-                'c.name as category_name',
-                'c.slug as category_slug',
-                'b.name as brand_name'
+                'products.*',
+                'categories.name as category_name',
+                'categories.slug as category_slug',
+                'brands.name as brand_name'
             )
-            ->selectSub(function ($query) {
-                $query->from('product_images')
-                    ->select('image')
-                    ->whereColumn('product_id', 'p.id')
-                    ->orderBy('id', 'ASC')
-                    ->limit(1);
-            }, 'image')
-            ->orderBy('p.id', 'DESC');
+            ->orderBy('products.id', 'desc');
 
         if ($selectedBrand > 0) {
-            $productsQuery->where('p.brand_id', $selectedBrand);
+            $productsQuery->where('products.brand_id', $selectedBrand);
         }
 
         if ($selectedCategory > 0) {
-            $productsQuery->where('p.category_id', $selectedCategory);
+            $productsQuery->where('products.category_id', $selectedCategory);
         }
 
-        if (in_array($section, ['wall', 'floor', 'accessories'], true)) {
-            $productsQuery->where(function ($query) use ($section) {
-                if ($section === 'wall') {
-                    $query->where('c.slug', 'like', '%wall%')
-                        ->orWhere('c.name', 'like', '%wall%');
-                } elseif ($section === 'floor') {
-                    $query->where('c.slug', 'like', '%floor%')
-                        ->orWhere('c.name', 'like', '%floor%');
-                } else {
-                    $query->where('c.slug', 'like', '%accessor%')
-                        ->orWhere('c.name', 'like', '%accessor%')
-                        ->orWhere('c.slug', 'like', '%sanitary%')
-                        ->orWhere('c.name', 'like', '%sanitary%')
-                        ->orWhere('c.slug', 'like', '%faucet%')
-                        ->orWhere('c.name', 'like', '%faucet%');
+        if ($searchQuery !== '') {
+            $productsQuery->where('products.name', 'like', '%' . $searchQuery . '%');
+        }
+
+        $keywords = $this->getSectionKeywords($section);
+        if (!empty($keywords)) {
+            $productsQuery->where(function ($query) use ($keywords) {
+                foreach ($keywords as $word) {
+                    $query->orWhere('categories.name', 'like', '%' . $word . '%')
+                        ->orWhere('categories.slug', 'like', '%' . $word . '%');
                 }
             });
         }
 
-        if ($searchQuery !== '') {
-            $productsQuery->where('p.name', 'like', '%' . $searchQuery . '%');
+        $products = $productsQuery->paginate(9)->withQueryString();
+
+        // Attach first image for each product (simple way, no subquery)
+        $productIds = $products->pluck('id')->toArray();
+        $imagesByProduct = [];
+
+        if (!empty($productIds)) {
+            $images = DB::table('product_images')
+                ->whereIn('product_id', $productIds)
+                ->orderBy('id', 'asc')
+                ->get(['product_id', 'image']);
+
+            foreach ($images as $image) {
+                if (!isset($imagesByProduct[$image->product_id])) {
+                    $imagesByProduct[$image->product_id] = $image->image;
+                }
+            }
         }
 
-        $products = $productsQuery->paginate(9)->withQueryString();
+        foreach ($products as $product) {
+            $product->image = $imagesByProduct[$product->id] ?? null;
+        }
+
+        $pageHeading = $this->getPageHeading($section);
 
         return view('frontend.products.index', [
             'products' => $products,
@@ -98,6 +105,7 @@ class ProductController extends Controller
             'selectedCategory' => $selectedCategory,
             'searchQuery' => $searchQuery,
             'section' => $section,
+            'pageHeading' => $pageHeading,
         ]);
     }
 
@@ -130,5 +138,39 @@ class ProductController extends Controller
         }
 
         return response($html);
+    }
+
+    private function getSectionKeywords(string $section): array
+    {
+        if ($section === 'wall') {
+            return ['wall'];
+        }
+
+        if ($section === 'floor') {
+            return ['floor'];
+        }
+
+        if ($section === 'accessories') {
+            return ['accessor', 'sanitary', 'faucet'];
+        }
+
+        return [];
+    }
+
+    private function getPageHeading(string $section): string
+    {
+        if ($section === 'accessories') {
+            return 'Accessories';
+        }
+
+        if ($section === 'floor') {
+            return 'Floor Tiles';
+        }
+
+        if ($section === 'wall') {
+            return 'Wall Tiles';
+        }
+
+        return 'Shop Page';
     }
 }

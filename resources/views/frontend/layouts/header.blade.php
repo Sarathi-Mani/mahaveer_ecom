@@ -120,7 +120,7 @@
                         <a href="{{ route('products.index') }}" class="nav-item nav-link">All Tiles</a>
                         <a href="{{ route('products.index', ['section' => 'floor']) }}" class="nav-item nav-link">Floor Tiles</a>
                         <a href="{{ route('products.index', ['section' => 'wall']) }}" class="nav-item nav-link">Wall Tiles</a>
-                        <a href="{{ route('products.index', ['section' => 'accessories']) }}" class="nav-item nav-link">Accessories</a>
+                        <a href="{{ route('accessories.index') }}" class="nav-item nav-link">Accessories</a>
 
                         <div class="nav-item dropdown megamenu">
                             <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">Category</a>
