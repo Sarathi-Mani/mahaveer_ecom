@@ -1,4 +1,4 @@
-@php
+﻿@php
     use Illuminate\Support\Facades\DB;
 
     // Active Brands (limit 10)
@@ -199,7 +199,7 @@
                         </div>
                         <div class="social-links">
           <a href="https://wa.me/919840648777" target="_blank" rel="noopener"><i class="bi bi-whatsapp"></i></a>
-          <a href="https://www.facebook.com/profile.php?id=61569118905669" target="_blank" rel="noopener"><i class="bi bi-facebook"></i></a>
+          <a href="https://www.facebook.com/61569118905669" target="_blank" rel="noopener"><i class="bi bi-facebook"></i></a>
           <a href="https://www.instagram.com/mahaveerceramicworld/" target="_blank" rel="noopener"><i class="bi bi-instagram"></i></a>
           <a href="https://www.youtube.com/@mahaveerceramic9280" target="_blank" rel="noopener"><i class="bi bi-youtube"></i></a>
           <a href="https://x.com/CeramicMahaveer" target="_blank" rel="noopener"><i class="bi bi-twitter"></i></a>
@@ -232,6 +232,10 @@
 
 
 <!-- ================= Scripts ================= -->
+
+<a href="#!" class="btn btn-secondary btn-lg-square back-to-top">
+    <i class="fa fa-arrow-up"></i>
+</a>
 
 <script src="{{ asset('frontend/assets/js/jquery.min.js') }}"></script>
 <script src="{{ asset('frontend/assets/js/bootstrap.bundle.min.js') }}"></script>

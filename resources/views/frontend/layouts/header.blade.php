@@ -1,5 +1,6 @@
-@php
+﻿@php
     use Illuminate\Support\Facades\DB;
+    use Illuminate\Support\Str;
 
     $brands = DB::table('brands')
         ->where('status', 1)
@@ -23,23 +24,25 @@
         return str_contains($name, 'floor') || str_contains($slug, 'floor');
     })->values();
 
-    $accessoriesCategories = $categories->filter(function ($category) {
+    $sanitaryCategories = $categories->filter(function ($category) {
         $name = strtolower($category->name);
         $slug = strtolower($category->slug);
-        return str_contains($name, 'accessor') || str_contains($slug, 'accessor')
-            || str_contains($name, 'sanitary') || str_contains($slug, 'sanitary')
-            || str_contains($name, 'faucet') || str_contains($slug, 'faucet');
+        return str_contains($name, 'sanitary') || str_contains($slug, 'sanitary')
+            || str_contains($name, 'faucet') || str_contains($slug, 'faucet')
+            || str_contains($name, 'accessor') || str_contains($slug, 'accessor');
     })->values();
 @endphp
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="utf-8">
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <title>{{ $meta_title ?? 'Mahaveer Ceramic World' }}</title>
+
     <meta name="keywords" content="{{ $meta_keywords ?? '' }}">
     <meta name="description" content="{{ $meta_description ?? '' }}">
 
@@ -48,22 +51,37 @@
     <meta property="og:image" content="{{ $og_image ?? '' }}">
     <meta property="og:url" content="{{ url()->current() }}">
 
-    <link href="{{ asset('frontend/assets/css/bootstrap.min.css') }}" rel="stylesheet">
-    <link href="{{ asset('frontend/assets/css/all.css') }}" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="{{ asset('frontend/assets/css/all.css') }}" />
     <link href="{{ asset('frontend/assets/css/bootstrap-icons.css') }}" rel="stylesheet">
+
     <link href="{{ asset('frontend/assets/css/animate.min.css') }}" rel="stylesheet">
     <link href="{{ asset('frontend/assets/css/owl.carousel.min.css') }}" rel="stylesheet">
+
+    <link href="{{ asset('frontend/assets/css/bootstrap.min.css') }}" rel="stylesheet">
     <link href="{{ asset('frontend/assets/css/style.css') }}" rel="stylesheet">
+    <link href="{{ asset('frontend/assets/css/header.css') }}" rel="stylesheet">
     <link href="{{ asset('frontend/assets/css/custom.css') }}" rel="stylesheet">
 
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="{{ asset('frontend/assets/js/jquery.min.js') }}"></script>
     <script src="{{ asset('frontend/assets/js/bootstrap.bundle.min.js') }}"></script>
 </head>
 
 <body>
+
 <div id="spinner" class="show bg-white position-fixed translate-middle w-100 vh-100 top-50 start-50 d-flex align-items-center justify-content-center">
     <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
         <span class="sr-only">Loading...</span>
+    </div>
+</div>
+
+<div class="container-fluid d-none d-lg-block">
+    <div class="container">
+        <div class="row align-items-center"></div>
     </div>
 </div>
 
@@ -81,7 +99,7 @@
             <div class="position-relative ps-4 w-100" style="max-width: 600px;">
                 <div class="d-flex border rounded-pill position-relative">
                     <input class="form-control w-100 py-2" type="text" id="searchBox" placeholder="Search Looking For?" autocomplete="off">
-                    <div id="suggestion-box" class="position-absolute bg-white w-100 rounded shadow" style="top: 50px; left: 0; z-index: 1000; display:none;"></div>
+                    <div id="suggestion-box" class="position-absolute bg-white w-100 rounded shadow" style="top: 80px; left: 0; z-index: 1000; display:none;"></div>
                 </div>
             </div>
         </div>
@@ -93,7 +111,7 @@
                     <span class="text-white">Chat</span>
                 </a>
 
-                <a href="{{ asset('frontend/Brochure.pdf') }}" target="_blank" class="btn btn-secondary rounded-pill py-2 px-4 px-lg-3 mb-3 mb-md-3 mb-lg-0">
+                <a href="https://www.mahaveerceramicworld.com/Brochure.pdf" target="_blank" class="btn btn-secondary rounded-pill py-2 px-4 px-lg-3 mb-3 mb-md-3 mb-lg-0">
                     <i class="fas fa-book me-2 fs-5 text-white"></i>
                     <span class="text-white">Catalogue</span>
                 </a>
@@ -106,8 +124,8 @@
     <div class="row gx-0 navbar-bg px-5 align-items-center">
         <div class="col-12 col-lg-12">
             <nav class="navbar navbar-expand-lg navbar-light">
-                <a href="{{ url('/') }}" class="navbar-brand d-block d-lg-none">
-                    <img src="{{ asset('frontend/assets/images/mcw-logo-new.png') }}" alt="MCW Logo" style="width:160px; height:90px;">
+                <a href="/" class="navbar-brand d-block d-lg-none">
+                    <img src="https://via.placeholder.com/160x90/ffffff/2d3748?text=MCW+Tiles" alt="MCW Logo" style="width:160px; height:90px;">
                 </a>
 
                 <button class="navbar-toggler ms-auto" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse">
@@ -131,40 +149,34 @@
                                         <ul class="megamenu-list list-unstyled">
                                             @forelse($wallCategories as $category)
                                                 <li class="megamenu-list-item">
-                                                    <a class="megamenu-list-link" href="{{ route('products.index', ['category' => $category->id]) }}">
-                                                        {{ $category->name }}
-                                                    </a>
+                                                    <a class="megamenu-list-link" href="{{ route('products.index', ['category' => $category->id]) }}">{{ $category->name }}</a>
                                                 </li>
                                             @empty
-                                                <li class="megamenu-list-item"><span class="megamenu-list-link">No categories found</span></li>
+                                                <li class="megamenu-list-item"><a class="megamenu-list-link" href="#">No Categories Found</a></li>
                                             @endforelse
                                         </ul>
                                     </div>
                                     <div class="col-md-4">
-                                        <h6 class="megamenu-title">FLOOR TILES</h6>
+                                        <h6 class="megamenu-title">Floor Tiles</h6>
                                         <ul class="megamenu-list list-unstyled">
                                             @forelse($floorCategories as $category)
                                                 <li class="megamenu-list-item">
-                                                    <a class="megamenu-list-link" href="{{ route('products.index', ['category' => $category->id]) }}">
-                                                        {{ $category->name }}
-                                                    </a>
+                                                    <a class="megamenu-list-link" href="{{ route('products.index', ['category' => $category->id]) }}">{{ $category->name }}</a>
                                                 </li>
                                             @empty
-                                                <li class="megamenu-list-item"><span class="megamenu-list-link">No categories found</span></li>
+                                                <li class="megamenu-list-item"><a class="megamenu-list-link" href="#">No Categories Found</a></li>
                                             @endforelse
                                         </ul>
                                     </div>
                                     <div class="col-md-4">
-                                        <h6 class="megamenu-title">SANITARY WARE &amp; FAUCETS</h6>
+                                        <h6 class="megamenu-title">Sanitary ware & Faucets</h6>
                                         <ul class="megamenu-list list-unstyled">
-                                            @forelse($accessoriesCategories as $category)
+                                            @forelse($sanitaryCategories as $category)
                                                 <li class="megamenu-list-item">
-                                                    <a class="megamenu-list-link" href="{{ route('products.index', ['category' => $category->id]) }}">
-                                                        {{ $category->name }}
-                                                    </a>
+                                                    <a class="megamenu-list-link" href="{{ route('products.index', ['category' => $category->id]) }}">{{ $category->name }}</a>
                                                 </li>
                                             @empty
-                                                <li class="megamenu-list-item"><span class="megamenu-list-link">No categories found</span></li>
+                                                <li class="megamenu-list-item"><a class="megamenu-list-link" href="#">No Categories Found</a></li>
                                             @endforelse
                                         </ul>
                                     </div>
@@ -183,9 +195,9 @@
                             </div>
                         </div>
 
-                        <a href="{{ url('/about') }}" class="nav-item nav-link">Company</a>
-                        <a href="{{ url('/awards') }}" class="nav-item nav-link">Awards</a>
-                        <a href="{{ url('/contact') }}" class="nav-item nav-link me-2">Contact</a>
+                        <a href="{{ route('about.index') }}" class="nav-item nav-link">Company</a>
+                        <a href="{{ route('awards.index') }}" class="nav-item nav-link">Awards</a>
+                        <a href="{{ route('contact.index') }}" class="nav-item nav-link me-2">Contact</a>
                     </div>
 
                     <div class="navbar-nav ms-auto">
@@ -199,83 +211,117 @@
     </div>
 </div>
 
+<div class="container-fluid products productList overflow-hidden">
+    <div class="container products-mini pt-1">
+        <div class="productList-carousel owl-carousel pt-4 wow fadeInUp" data-wow-delay="0.3s">
+            <div class="productImg-carousel owl-carousel productList-item">
+                <div class="productImg-item products-mini-item border">
+                    <div class="row g-0">
+                        <div class="col-5"><div class="products-mini-img border-end h-100"><img src="{{ asset('frontend/assets/images/brand/kajaria.webp') }}" class="img-fluid w-100 h-100" alt="Image"></div></div>
+                        <div class="col-7"><div class="products-mini-content p-3"><a href="{{ route('products.index', ['brand' => 1]) }}" class="d-block mb-2">Kajaria Ceramic - Your trusted choice for premium tiles.</a></div></div>
+                    </div>
+                </div>
+            </div>
+            <div class="productImg-carousel owl-carousel productList-item">
+                <div class="productImg-item products-mini-item border">
+                    <div class="row g-0">
+                        <div class="col-5"><div class="products-mini-img border-end h-100"><img src="{{ asset('frontend/assets/images/brand/Nexion.jpg') }}" class="img-fluid w-100 h-100" alt="Image"></div></div>
+                        <div class="col-7"><div class="products-mini-content p-3"><a href="{{ route('products.index', ['brand' => 2]) }}" class="d-block mb-2">Nexion Tiles - Crafted for modern, sophisticated spaces.</a></div></div>
+                    </div>
+                </div>
+            </div>
+            <div class="productImg-carousel owl-carousel productList-item">
+                <div class="productImg-item products-mini-item border">
+                    <div class="row g-0">
+                        <div class="col-5"><div class="products-mini-img border-end h-100"><img src="{{ asset('frontend/assets/images/brand/american.jpg') }}" class="img-fluid w-100 h-100" alt="Image"></div></div>
+                        <div class="col-7"><div class="products-mini-content p-3"><a href="{{ route('products.index', ['brand' => 4]) }}" class="d-block mb-2">American Standard - Quality you can rely on.</a></div></div>
+                    </div>
+                </div>
+            </div>
+            <div class="productImg-carousel owl-carousel productList-item">
+                <div class="productImg-item products-mini-item border">
+                    <div class="row g-0">
+                        <div class="col-5"><div class="products-mini-img border-end h-100"><img src="{{ asset('frontend/assets/images/brand/kohler.jpg') }}" class="img-fluid w-100 h-100" alt="Image"></div></div>
+                        <div class="col-7"><div class="products-mini-content p-3"><a href="{{ route('products.index', ['brand' => 5]) }}" class="d-block mb-2">Kohler - Transforming spaces with timeless elegance.</a></div></div>
+                    </div>
+                </div>
+            </div>
+            <div class="productImg-carousel owl-carousel productList-item">
+                <div class="productImg-item products-mini-item border">
+                    <div class="row g-0">
+                        <div class="col-5"><div class="products-mini-img border-end h-100"><img src="{{ asset('frontend/assets/images/brand/auga.webp') }}" class="img-fluid w-100 h-100" alt="Image"></div></div>
+                        <div class="col-7"><div class="products-mini-content p-3"><a href="{{ route('products.index') }}" class="d-block mb-2">Auga - Elevating spaces with pure, modern design.</a></div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    const searchBox = document.getElementById('searchBox');
-    const suggestionBox = document.getElementById('suggestion-box');
+const searchBox = document.getElementById('searchBox');
+const examples = [
+  'Search bathroom wall tiles...',
+  'Search kitchen floor tiles...',
+  'Search glossy finish tiles...',
+  'Search outdoor anti-skid tiles...',
+  'Search living room vitrified tiles...'
+];
 
-    if (!searchBox || !suggestionBox) {
-        return;
-    }
+let i = 0;
+let charIndex = 0;
+let isDeleting = false;
 
-    const examples = [
-        'Search bathroom wall tiles...',
-        'Search kitchen floor tiles...',
-        'Search glossy finish tiles...',
-        'Search outdoor anti-skid tiles...',
-        'Search living room vitrified tiles...'
-    ];
+function typePlaceholder() {
+  const current = examples[i];
 
-    let i = 0;
-    let charIndex = 0;
-    let isDeleting = false;
+  if (isDeleting) {
+    searchBox.placeholder = current.substring(0, charIndex--);
+  } else {
+    searchBox.placeholder = current.substring(0, charIndex++);
+  }
 
-    function typePlaceholder() {
-        const current = examples[i];
-        searchBox.placeholder = isDeleting
-            ? current.substring(0, charIndex--)
-            : current.substring(0, charIndex++);
+  if (!isDeleting && charIndex === current.length) {
+    isDeleting = true;
+    setTimeout(typePlaceholder, 1200);
+  } else if (isDeleting && charIndex === 0) {
+    isDeleting = false;
+    i = (i + 1) % examples.length;
+    setTimeout(typePlaceholder, 300);
+  } else {
+    setTimeout(typePlaceholder, isDeleting ? 50 : 100);
+  }
+}
 
-        if (!isDeleting && charIndex === current.length) {
-            isDeleting = true;
-            setTimeout(typePlaceholder, 1200);
-        } else if (isDeleting && charIndex === 0) {
-            isDeleting = false;
-            i = (i + 1) % examples.length;
-            setTimeout(typePlaceholder, 300);
-        } else {
-            setTimeout(typePlaceholder, isDeleting ? 50 : 100);
-        }
-    }
-
+if (searchBox) {
     typePlaceholder();
+}
 
-    $.ajaxSetup({
-        headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-        }
-    });
-
-    $('#searchBox').on('keyup', function (event) {
-        const query = $(this).val().trim();
-
-        if (event.key === 'Enter' && query.length > 0) {
-            window.location.href = "{{ route('products.index') }}" + '?q=' + encodeURIComponent(query);
-            return;
-        }
-
+$(document).ready(function() {
+    $('#searchBox').on('keyup', function() {
+        let query = $(this).val().trim();
         if (query.length > 1) {
             $.ajax({
                 url: "{{ route('search.suggestions') }}",
                 type: 'POST',
-                data: { query: query },
-                success: function (data) {
-                    suggestionBox.innerHTML = data;
-                    suggestionBox.style.display = 'block';
+                data: {
+                    query: query,
+                    _token: $('meta[name="csrf-token"]').attr('content')
                 },
-                error: function () {
-                    suggestionBox.style.display = 'none';
+                success: function(data) {
+                    $('#suggestion-box').html(data).show();
                 }
             });
         } else {
-            suggestionBox.style.display = 'none';
+            $('#suggestion-box').hide();
         }
     });
 
-    document.addEventListener('click', function (event) {
-        if (!event.target.closest('#searchBox') && !event.target.closest('#suggestion-box')) {
-            suggestionBox.style.display = 'none';
+    $(document).click(function(e) {
+        if (!$(e.target).closest('#searchBox, #suggestion-box').length) {
+            $('#suggestion-box').hide();
         }
     });
 });
 </script>
+

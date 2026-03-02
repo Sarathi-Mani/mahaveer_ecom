@@ -1,13 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    @include('frontend.layouts.header')
-</head>
-<body>
+@include('frontend.layouts.header')
 
-    @yield('content')
+@yield('content')
 
-    @include('frontend.layouts.footer')
+@include('frontend.layouts.footer')
 
 </body>
 </html>

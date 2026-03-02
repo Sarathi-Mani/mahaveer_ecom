@@ -1,10 +1,14 @@
 @extends('frontend.layouts.app')
 
 @section('content')
+@php
+    $listingRoute = ($section ?? '') === 'accessories' ? 'accessories.index' : 'products.index';
+@endphp
 <div class="container-fluid page-header py-5">
     <h1 class="text-center text-white display-6 wow fadeInUp" data-wow-delay="0.1s">{{ $pageHeading ?? 'Shop Page' }}</h1>
     <ol class="breadcrumb justify-content-center mb-0 wow fadeInUp" data-wow-delay="0.3s">
         <li class="breadcrumb-item text-white"><a href="{{ url('/') }}" class="text-white">Home</a></li>
+        <li class="breadcrumb-item text-white">Pages</li>
         <li class="breadcrumb-item active text-white">Shop</li>
     </ol>
 </div>
@@ -48,7 +52,7 @@
                         @forelse($brandFilter as $brand)
                             <li>
                                 <div class="categories-item d-flex justify-content-between align-items-center">
-                                    <a href="{{ route('products.index', array_filter(['brand' => $brand->id, 'category' => $selectedCategory])) }}" class="text-dark {{ (int) $selectedBrand === (int) $brand->id ? 'fw-bold' : '' }}">
+                                    <a href="{{ route($listingRoute, array_filter(['brand' => $brand->id, 'category' => $selectedCategory, 'section' => ($section ?? '') !== '' ? $section : null])) }}" class="text-dark {{ (int) $selectedBrand === (int) $brand->id ? 'fw-bold' : '' }}">
                                         <i class="fas fa-tag text-secondary me-2"></i>{{ $brand->name }}
                                     </a>
                                 </div>
@@ -65,7 +69,7 @@
                         @forelse($categoryFilter as $category)
                             <li>
                                 <div class="categories-item d-flex justify-content-between align-items-center">
-                                    <a href="{{ route('products.index', array_filter(['brand' => $selectedBrand, 'category' => $category->id])) }}" class="text-dark {{ (int) $selectedCategory === (int) $category->id ? 'fw-bold' : '' }}">
+                                    <a href="{{ route($listingRoute, array_filter(['brand' => $selectedBrand, 'category' => $category->id, 'section' => ($section ?? '') !== '' ? $section : null])) }}" class="text-dark {{ (int) $selectedCategory === (int) $category->id ? 'fw-bold' : '' }}">
                                         <i class="fas fa-layer-group text-secondary me-2"></i>{{ $category->name }}
                                     </a>
                                 </div>
@@ -77,7 +81,7 @@
                 </div>
 
                 @if($selectedBrand || $selectedCategory)
-                    <a href="{{ route('products.index') }}" class="btn btn-outline-secondary btn-sm rounded-pill">
+                    <a href="{{ route($listingRoute, array_filter(['section' => ($section ?? '') !== '' ? $section : null])) }}" class="btn btn-outline-secondary btn-sm rounded-pill">
                         Clear filters
                     </a>
                 @endif
@@ -93,6 +97,7 @@
                                         ? asset($product->image)
                                         : asset('frontend/assets/images/default.jpg');
                                     $isNew = !empty($product->created_at) && \Illuminate\Support\Carbon::parse($product->created_at)->gte(now()->subDays(30));
+                                    $productKey = !empty($product->slug) ? $product->slug : \Illuminate\Support\Str::slug($product->name);
                                 @endphp
 
                                 <div class="col-lg-4 col-md-6 mb-5">
@@ -104,15 +109,15 @@
                                                     <div class="product-new">New</div>
                                                 @endif
                                                 <div class="product-details">
-                                                    <a href="javascript:void(0)">
+                                                    <a href="{{ route('products.show', ['slug' => $productKey]) }}">
                                                         <i class="fa fa-eye fa-1x"></i>
                                                     </a>
                                                 </div>
                                             </div>
 
                                             <div class="text-center rounded-bottom p-4">
-                                                <a href="javascript:void(0)" class="d-block mb-2">{{ $product->category_name ?? 'N/A' }}</a>
-                                                <a href="javascript:void(0)" class="d-block h5">{{ $product->name }}</a>
+                                                <a href="{{ route($listingRoute, array_filter(['category' => $product->category_id, 'section' => ($section ?? '') !== '' ? $section : null])) }}" class="d-block mb-2">{{ $product->category_name ?? 'N/A' }}</a>
+                                                <a href="{{ route('products.show', ['slug' => $productKey]) }}" class="d-block h5">{{ $product->name }}</a>
                                                 <p class="mb-1">Size: <strong>{{ $product->size ?: 'N/A' }}</strong></p>
                                                 <p class="mb-0">Thickness: <strong>{{ $product->thickness ?: 'N/A' }}</strong></p>
                                             </div>
@@ -147,12 +152,12 @@
                             <div class="col-12 wow fadeInUp" data-wow-delay="0.1s">
                                 <div class="pagination d-flex justify-content-center mt-5">
                                     @if($currentPage > 1)
-                                        <a href="{{ route('products.index', array_merge($query, ['page' => $currentPage - 1])) }}" class="rounded">&laquo;</a>
+                                        <a href="{{ route($listingRoute, array_merge($query, ['page' => $currentPage - 1])) }}" class="rounded">&laquo;</a>
                                     @endif
 
                                     @for($i = 1; $i <= $lastPage; $i++)
                                         @if($i === 1 || $i === $lastPage || ($i >= $currentPage - $range && $i <= $currentPage + $range))
-                                            <a href="{{ route('products.index', array_merge($query, ['page' => $i])) }}" class="rounded {{ $i === $currentPage ? 'active' : '' }}">{{ $i }}</a>
+                                            <a href="{{ route($listingRoute, array_merge($query, ['page' => $i])) }}" class="rounded {{ $i === $currentPage ? 'active' : '' }}">{{ $i }}</a>
                                             @php $showDots = true; @endphp
                                         @elseif($showDots)
                                             <span class="rounded px-2">...</span>
@@ -161,7 +166,7 @@
                                     @endfor
 
                                     @if($currentPage < $lastPage)
-                                        <a href="{{ route('products.index', array_merge($query, ['page' => $currentPage + 1])) }}" class="rounded">&raquo;</a>
+                                        <a href="{{ route($listingRoute, array_merge($query, ['page' => $currentPage + 1])) }}" class="rounded">&raquo;</a>
                                     @endif
                                 </div>
                             </div>

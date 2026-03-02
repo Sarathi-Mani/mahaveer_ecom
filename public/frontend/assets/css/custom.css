@@ -314,5 +314,87 @@ h6,
 .btn {
     font-size: 0.92rem;
 }
+
+/* Final header visibility overrides */
+.navbar .dropdown-menu .dropdown-item {
+    color: #e2e8f0 !important;
+}
+
+.navbar .dropdown-menu .dropdown-item:hover {
+    color: #ffffff !important;
+    background-color: #4a5568 !important;
+}
+
+.navbar .megamenu-content .megamenu-title {
+    color: #ffffff !important;
+}
+
+.navbar .megamenu-content .megamenu-list-link {
+    color: #d6deea !important;
+}
+
+.navbar .megamenu-content .megamenu-list-link:hover {
+    color: #ffffff !important;
+}
+
+/* Header brand strip text visibility fix */
+.products.productList .products-mini-content a {
+    color: #1f2937 !important;
+    display: block;
+    line-height: 1.35;
+    text-decoration: none;
+}
+
+.products.productList .products-mini-content a:hover {
+    color: #0A2463 !important;
+}
+
+.products.productList .productImg-item {
+    background: #ffffff;
+}
+
+/* Responsive overflow fix (prevents unwanted page scrollbars) */
+html,
+body {
+    overflow-x: hidden;
+    max-width: 100%;
+}
+
+.header-carousel .owl-stage-outer,
+.productList-carousel .owl-stage-outer,
+.productImg-carousel .owl-stage-outer {
+    overflow: hidden;
+}
+
+/* Header submenu visibility fix */
+.nav-bar .navbar .dropdown-menu,
+.nav-bar .navbar .megamenu-content {
+    background-color: #ffffff !important;
+    border: none !important;
+}
+
+.nav-bar .navbar .dropdown-menu .dropdown-item {
+    color: #666666 !important;
+}
+
+.nav-bar .navbar .dropdown-menu .dropdown-item:hover,
+.nav-bar .navbar .dropdown-menu .dropdown-item:focus {
+    color: #0A2463 !important;
+    background-color: #ffffff !important;
+}
+
+.nav-bar .navbar .megamenu-content .megamenu-title {
+    color: #333333 !important;
+}
+
+.nav-bar .navbar .megamenu-content .megamenu-list-link {
+    color: #666666 !important;
+}
+
+.nav-bar .navbar .megamenu-content .megamenu-list-link:hover,
+.nav-bar .navbar .megamenu-content .megamenu-list-link:focus {
+    color: #0A2463 !important;
+    background-color: transparent !important;
+}
        
     

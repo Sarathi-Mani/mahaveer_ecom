@@ -18,6 +18,10 @@ Route::get('/', [HomeController::class, 'index'])
         ->name('home');
 Route::get('/products', [ProductController::class, 'index'])
         ->name('products.index');
+Route::get('/products/{slug}', [ProductController::class, 'show'])
+        ->name('products.show');
+Route::post('/products/inquiry', [ProductController::class, 'submitInquiry'])
+        ->name('products.inquiry');
 Route::get('/accessories', [ProductController::class, 'accessories'])
         ->name('accessories.index');
 Route::get('/about', [AboutController::class, 'index'])
