@@ -256,6 +256,10 @@ document.addEventListener("DOMContentLoaded", function () {
     const enquiryForm = document.getElementById("enquiry-form");
     const actionSection = document.getElementById("action-section");
 
+    if (!chatToggle || !chatBox || !chatClose || !callBtn || !enquiryBtn || !enquiryForm || !actionSection) {
+        return;
+    }
+
     chatToggle.addEventListener("click", () => {
         chatBox.style.display =
             chatBox.style.display === "block" ? "none" : "block";
@@ -276,5 +280,106 @@ document.addEventListener("DOMContentLoaded", function () {
         enquiryForm.style.display = "block";
     });
 
+});
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    async function handleAjaxForm(form) {
+        const formData = new FormData(form);
+        const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+
+        const response = await fetch(form.action, {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': csrf
+            },
+            body: formData
+        });
+
+        const contentType = response.headers.get('content-type') || '';
+        if (!contentType.includes('application/json')) {
+            return;
+        }
+
+        const data = await response.json();
+        if (!response.ok || data.status !== 'success') {
+            return;
+        }
+
+        updateBadge('wishlistCountBadge', data.wishlist_count ?? 0);
+        updateBadge('cartCountBadge', data.cart_count ?? 0);
+
+        const actionType = form.getAttribute('data-action-type');
+        if (actionType === 'wishlist') {
+            const icon = form.querySelector('i.fa-heart');
+            if (icon) {
+                if (data.wishlisted) {
+                    icon.classList.remove('far');
+                    icon.classList.add('fas', 'text-danger');
+                } else {
+                    icon.classList.remove('fas', 'text-danger');
+                    icon.classList.add('far');
+                }
+            }
+        }
+
+        const removeCard = form.getAttribute('data-remove-card') === 'true';
+        if (removeCard) {
+            const card = form.closest('[data-card-product]');
+            if (card) card.remove();
+        }
+
+        if (document.querySelectorAll('[data-card-product]').length === 0) {
+            window.location.reload();
+        }
+    }
+
+    function updateBadge(id, count) {
+        const badge = document.getElementById(id);
+        if (!badge) return;
+        badge.textContent = String(count);
+        if (count > 0) {
+            badge.classList.remove('d-none');
+        } else {
+            badge.classList.add('d-none');
+        }
+    }
+
+    // Extra safety: intercept button clicks before native submit happens.
+    window.addEventListener('click', function (e) {
+        const submitBtn = e.target.closest('form[data-ajax-action="true"] button[type="submit"], form[data-ajax-action="true"] input[type="submit"]');
+        if (!submitBtn) return;
+
+        const form = submitBtn.closest('form[data-ajax-action="true"]');
+        if (!form) return;
+
+        e.preventDefault();
+        e.stopPropagation();
+        if (typeof e.stopImmediatePropagation === 'function') {
+            e.stopImmediatePropagation();
+        }
+
+        handleAjaxForm(form).catch((err) => console.error(err));
+    }, true);
+
+    window.addEventListener('submit', async function (e) {
+        const form = e.target.closest('form[data-ajax-action="true"]');
+        if (!form) return;
+
+        e.preventDefault();
+        e.stopPropagation();
+        if (typeof e.stopImmediatePropagation === 'function') {
+            e.stopImmediatePropagation();
+        }
+
+        try {
+            await handleAjaxForm(form);
+        } catch (err) {
+            console.error(err);
+        }
+    }, true);
 });
 </script>

@@ -8,6 +8,7 @@ use App\Http\Controllers\Frontend\AboutController;
 use App\Http\Controllers\Frontend\AwardsController;
 use App\Http\Controllers\Frontend\ContactController;
 use App\Http\Controllers\Frontend\MobileAuthController;
+use App\Http\Controllers\Frontend\ShopActionController;
 
 // Route::get('/', function () {
 //     return view('welcome');
@@ -53,6 +54,16 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    Route::get('/wishlist', [ShopActionController::class, 'wishlistIndex'])->name('wishlist.index');
+    Route::post('/wishlist/{product}', [ShopActionController::class, 'wishlistStore'])->name('wishlist.store');
+    Route::post('/wishlist/{product}/toggle', [ShopActionController::class, 'wishlistToggle'])->name('wishlist.toggle');
+    Route::delete('/wishlist/{product}', [ShopActionController::class, 'wishlistDestroy'])->name('wishlist.destroy');
+    Route::post('/wishlist/{product}/move-to-cart', [ShopActionController::class, 'wishlistMoveToCart'])->name('wishlist.move_to_cart');
+
+    Route::get('/cart', [ShopActionController::class, 'cartIndex'])->name('cart.index');
+    Route::post('/cart/{product}', [ShopActionController::class, 'cartStore'])->name('cart.store');
+    Route::delete('/cart/{product}', [ShopActionController::class, 'cartDestroy'])->name('cart.destroy');
 });
 
 require __DIR__.'/auth.php';

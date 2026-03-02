@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
 class ProductController extends Controller
@@ -91,11 +93,28 @@ class ProductController extends Controller
             $item->image = $relatedImages[$item->id] ?? null;
         }
 
+        $wishlistProductIds = [];
+        $cartProductIds = [];
+        if (Auth::check() && Schema::hasTable('wishlists') && Schema::hasTable('cart_items')) {
+            $wishlistProductIds = DB::table('wishlists')
+                ->where('user_id', Auth::id())
+                ->pluck('product_id')
+                ->map(fn ($id) => (int) $id)
+                ->toArray();
+            $cartProductIds = DB::table('cart_items')
+                ->where('user_id', Auth::id())
+                ->pluck('product_id')
+                ->map(fn ($id) => (int) $id)
+                ->toArray();
+        }
+
         return view('frontend.products.show', [
             'product' => $product,
             'images' => $images,
             'relatedProducts' => $relatedProducts,
             'relatedSubcategories' => $relatedSubcategories,
+            'wishlistProductIds' => $wishlistProductIds,
+            'cartProductIds' => $cartProductIds,
             'meta_title' => $product->title ?: $product->name,
             'meta_keywords' => $product->keywords ?: ($product->name . ' tiles, ceramic'),
             'meta_description' => $product->meta_description ?: ('Best price for ' . $product->name),
@@ -208,7 +227,7 @@ class ProductController extends Controller
             });
         }
 
-        $products = $productsQuery->paginate(9)->withQueryString();
+        $products = $productsQuery->paginate(10)->withQueryString();
 
         // Attach first image for each product (simple way, no subquery)
         $productIds = $products->pluck('id')->toArray();
@@ -231,6 +250,21 @@ class ProductController extends Controller
             $product->image = $imagesByProduct[$product->id] ?? null;
         }
 
+        $wishlistProductIds = [];
+        $cartProductIds = [];
+        if (Auth::check() && Schema::hasTable('wishlists') && Schema::hasTable('cart_items')) {
+            $wishlistProductIds = DB::table('wishlists')
+                ->where('user_id', Auth::id())
+                ->pluck('product_id')
+                ->map(fn ($id) => (int) $id)
+                ->toArray();
+            $cartProductIds = DB::table('cart_items')
+                ->where('user_id', Auth::id())
+                ->pluck('product_id')
+                ->map(fn ($id) => (int) $id)
+                ->toArray();
+        }
+
         $pageHeading = $this->getPageHeading($section);
 
         return view('frontend.products.index', [
@@ -242,6 +276,8 @@ class ProductController extends Controller
             'searchQuery' => $searchQuery,
             'section' => $section,
             'pageHeading' => $pageHeading,
+            'wishlistProductIds' => $wishlistProductIds,
+            'cartProductIds' => $cartProductIds,
         ]);
     }
 
@@ -310,3 +346,4 @@ class ProductController extends Controller
         return 'Shop Page';
     }
 }
+

@@ -1,6 +1,8 @@
 ﻿@php
     use Illuminate\Support\Facades\DB;
     use Illuminate\Support\Str;
+    use Illuminate\Support\Facades\Auth;
+    use Illuminate\Support\Facades\Schema;
 
     $brands = DB::table('brands')
         ->where('status', 1)
@@ -31,6 +33,13 @@
             || str_contains($name, 'faucet') || str_contains($slug, 'faucet')
             || str_contains($name, 'accessor') || str_contains($slug, 'accessor');
     })->values();
+
+    $wishlistCount = 0;
+    $cartCount = 0;
+    if (Auth::check() && Schema::hasTable('wishlists') && Schema::hasTable('cart_items')) {
+        $wishlistCount = DB::table('wishlists')->where('user_id', Auth::id())->count();
+        $cartCount = DB::table('cart_items')->where('user_id', Auth::id())->sum('quantity');
+    }
 @endphp
 
 <!DOCTYPE html>
@@ -114,6 +123,10 @@
                 <a href="https://www.mahaveerceramicworld.com/Brochure.pdf" target="_blank" class="btn btn-secondary rounded-pill py-2 px-4 px-lg-3 mb-3 mb-md-3 mb-lg-0">
                     <i class="fas fa-book me-2 fs-5 text-white"></i>
                     <span class="text-white">Catalogue</span>
+                </a>
+
+                <a href="tel:+919840648777" class="btn btn-primary rounded-pill py-2 px-4 px-lg-3 mb-3 mb-md-3 mb-lg-0">
+                    <i class="fa fa-mobile-alt me-2"></i> +91 98406 48777
                 </a>
             </div>
         </div>
@@ -200,17 +213,17 @@
                         <a href="{{ route('contact.index') }}" class="nav-item nav-link me-2">Contact</a>
                     </div>
 
-                    <div class="navbar-nav ms-auto">
+                    <div class="ms-auto d-flex align-items-center flex-wrap justify-content-lg-end header-action-group mt-3 mt-lg-0">
                         @guest
-                            <a href="{{ route('member.register') }}" class="btn btn-outline-light rounded-pill py-2 px-3 px-lg-3 me-2">
+                            <a href="{{ route('member.register') }}" class="btn btn-outline-light rounded-pill py-2 px-3 px-lg-3">
                                 Register
                             </a>
-                            <a href="{{ route('member.login') }}" class="btn btn-outline-light rounded-pill py-2 px-3 px-lg-3 me-2">
+                            <a href="{{ route('member.login') }}" class="btn btn-outline-light rounded-pill py-2 px-3 px-lg-3">
                                 Login
                             </a>
                         @else
-                            <span class="text-white align-self-center me-2">Hi, {{ Auth::user()->name }}</span>
-                            <form method="POST" action="{{ route('logout') }}" class="d-inline me-2">
+                            <span class="text-white align-self-center">Hi, {{ Auth::user()->name }}</span>
+                            <form method="POST" action="{{ route('logout') }}" class="d-inline">
                                 @csrf
                                 <button type="submit" class="btn btn-outline-light rounded-pill py-2 px-3 px-lg-3">
                                     Logout
@@ -218,9 +231,26 @@
                             </form>
                         @endguest
 
-                        <a href="tel:+919840648777" class="btn btn-primary rounded-pill py-2 px-4 px-lg-3">
-                            <i class="fa fa-mobile-alt me-2"></i> +91 98406 48777
-                        </a>
+                        @guest
+                            <a href="#" class="btn btn-outline-light btn-md-square rounded-circle" title="Wishlist" aria-label="Wishlist"
+                               data-bs-toggle="modal" data-bs-target="#authRequiredModal">
+                                <i class="far fa-heart"></i>
+                            </a>
+                            <a href="#" class="btn btn-outline-light btn-md-square rounded-circle" title="Add to Cart" aria-label="Add to Cart"
+                               data-bs-toggle="modal" data-bs-target="#authRequiredModal">
+                                <i class="fas fa-shopping-cart"></i>
+                            </a>
+                        @else
+                            <a href="{{ route('wishlist.index') }}" class="btn btn-outline-light btn-md-square rounded-circle position-relative" title="Wishlist" aria-label="Wishlist">
+                                <i class="far fa-heart"></i>
+                                <span id="wishlistCountBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger {{ $wishlistCount > 0 ? '' : 'd-none' }}">{{ $wishlistCount }}</span>
+                            </a>
+                            <a href="{{ route('cart.index') }}" class="btn btn-outline-light btn-md-square rounded-circle position-relative" title="Add to Cart" aria-label="Add to Cart">
+                                <i class="fas fa-shopping-cart"></i>
+                                <span id="cartCountBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger {{ $cartCount > 0 ? '' : 'd-none' }}">{{ $cartCount }}</span>
+                            </a>
+                        @endguest
+
                     </div>
                 </div>
             </nav>
@@ -274,6 +304,26 @@
         </div>
     </div>
 </div>
+
+@guest
+<div class="modal fade" id="authRequiredModal" tabindex="-1" aria-labelledby="authRequiredModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="authRequiredModalLabel">Login Required</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Please login to use Wishlist and Cart.
+            </div>
+            <div class="modal-footer">
+                <a href="{{ route('member.register') }}" class="btn btn-outline-secondary">Register</a>
+                <a href="{{ route('member.login') }}" class="btn btn-primary">Login</a>
+            </div>
+        </div>
+    </div>
+</div>
+@endguest
 
 <script>
 const searchBox = document.getElementById('searchBox');

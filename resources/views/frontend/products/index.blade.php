@@ -98,6 +98,7 @@
                                         : asset('frontend/assets/images/default.jpg');
                                     $isNew = !empty($product->created_at) && \Illuminate\Support\Carbon::parse($product->created_at)->gte(now()->subDays(30));
                                     $productKey = !empty($product->slug) ? $product->slug : \Illuminate\Support\Str::slug($product->name);
+                                    $isWishlisted = in_array((int) $product->id, $wishlistProductIds ?? [], true);
                                 @endphp
 
                                 <div class="col-lg-4 col-md-6 mb-5">
@@ -108,6 +109,29 @@
                                                 @if($isNew)
                                                     <div class="product-new">New</div>
                                                 @endif
+                                                <div class="product-top-actions">
+                                                    @auth
+                                                        <form method="POST" action="{{ route('wishlist.toggle', ['product' => $product->id]) }}" data-ajax-action="true" data-action-type="wishlist" data-product-id="{{ $product->id }}">
+                                                            @csrf
+                                                            <button type="submit" class="btn btn-light btn-sm rounded-circle" title="Wishlist">
+                                                                <i class="{{ $isWishlisted ? 'fas text-danger' : 'far' }} fa-heart"></i>
+                                                            </button>
+                                                        </form>
+                                                        <form method="POST" action="{{ route('cart.store', ['product' => $product->id]) }}" data-ajax-action="true" data-action-type="cart" data-product-id="{{ $product->id }}">
+                                                            @csrf
+                                                            <button type="submit" class="btn btn-light btn-sm rounded-circle" title="Add to Cart">
+                                                                <i class="fas fa-shopping-cart"></i>
+                                                            </button>
+                                                        </form>
+                                                    @else
+                                                        <button class="btn btn-light btn-sm rounded-circle" data-bs-toggle="modal" data-bs-target="#authRequiredModal" title="Wishlist">
+                                                            <i class="far fa-heart"></i>
+                                                        </button>
+                                                        <button class="btn btn-light btn-sm rounded-circle" data-bs-toggle="modal" data-bs-target="#authRequiredModal" title="Add to Cart">
+                                                            <i class="fas fa-shopping-cart"></i>
+                                                        </button>
+                                                    @endauth
+                                                </div>
                                                 <div class="product-details">
                                                     <a href="{{ route('products.show', ['slug' => $productKey]) }}">
                                                         <i class="fa fa-eye fa-1x"></i>

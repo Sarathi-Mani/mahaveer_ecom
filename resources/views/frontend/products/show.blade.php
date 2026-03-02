@@ -176,6 +176,32 @@
                                 <i class="fas fa-download me-1"></i> Download Images
                             </button>
                         </div>
+                        <div class="mb-3 d-flex flex-wrap gap-2">
+                            @auth
+                                @php
+                                    $isMainWishlisted = in_array((int) $product->id, $wishlistProductIds ?? [], true);
+                                @endphp
+                                <form method="POST" action="{{ route('wishlist.toggle', ['product' => $product->id]) }}" data-ajax-action="true" data-action-type="wishlist" data-product-id="{{ $product->id }}">
+                                    @csrf
+                                    <button type="submit" class="btn btn-outline-primary rounded-pill">
+                                        <i class="{{ $isMainWishlisted ? 'fas text-danger' : 'far' }} fa-heart me-1"></i> Wishlist
+                                    </button>
+                                </form>
+                                <form method="POST" action="{{ route('cart.store', ['product' => $product->id]) }}" data-ajax-action="true" data-action-type="cart" data-product-id="{{ $product->id }}">
+                                    @csrf
+                                    <button type="submit" class="btn btn-outline-dark rounded-pill">
+                                        <i class="fas fa-shopping-cart me-1"></i> Add to Cart
+                                    </button>
+                                </form>
+                            @else
+                                <button class="btn btn-outline-primary rounded-pill" data-bs-toggle="modal" data-bs-target="#authRequiredModal">
+                                    <i class="far fa-heart me-1"></i> Wishlist
+                                </button>
+                                <button class="btn btn-outline-dark rounded-pill" data-bs-toggle="modal" data-bs-target="#authRequiredModal">
+                                    <i class="fas fa-shopping-cart me-1"></i> Add to Cart
+                                </button>
+                            @endauth
+                        </div>
 
                         <p class="mb-4">
                             @if(!empty($product->pro_description))
@@ -313,13 +339,38 @@
                 @php
                     $relatedImage = !empty($relatedProduct->image) ? asset($relatedProduct->image) : $fallbackImage;
                     $relatedKey = !empty($relatedProduct->slug) ? $relatedProduct->slug : \Illuminate\Support\Str::slug($relatedProduct->name);
+                    $isRelatedWishlisted = in_array((int) $relatedProduct->id, $wishlistProductIds ?? [], true);
                 @endphp
                 <div class="related-item rounded">
-                    <div class="related-item-inner border rounded">
-                        <div class="related-item-inner-item">
-                            <img src="{{ $relatedImage }}"
-                                 class="img-fluid w-100 rounded-top"
-                                 alt="{{ $relatedProduct->name }}">
+                        <div class="related-item-inner border rounded">
+                            <div class="related-item-inner-item">
+                                <img src="{{ $relatedImage }}"
+                                     class="img-fluid w-100 rounded-top"
+                                     alt="{{ $relatedProduct->name }}">
+
+                                <div class="product-top-actions">
+                                    @auth
+                                        <form method="POST" action="{{ route('wishlist.toggle', ['product' => $relatedProduct->id]) }}" data-ajax-action="true" data-action-type="wishlist" data-product-id="{{ $relatedProduct->id }}">
+                                            @csrf
+                                            <button type="submit" class="btn btn-light btn-sm rounded-circle" title="Wishlist">
+                                                <i class="{{ $isRelatedWishlisted ? 'fas text-danger' : 'far' }} fa-heart"></i>
+                                            </button>
+                                        </form>
+                                        <form method="POST" action="{{ route('cart.store', ['product' => $relatedProduct->id]) }}" data-ajax-action="true" data-action-type="cart" data-product-id="{{ $relatedProduct->id }}">
+                                            @csrf
+                                            <button type="submit" class="btn btn-light btn-sm rounded-circle" title="Add to Cart">
+                                                <i class="fas fa-shopping-cart"></i>
+                                            </button>
+                                        </form>
+                                    @else
+                                        <button class="btn btn-light btn-sm rounded-circle" data-bs-toggle="modal" data-bs-target="#authRequiredModal" title="Wishlist">
+                                            <i class="far fa-heart"></i>
+                                        </button>
+                                        <button class="btn btn-light btn-sm rounded-circle" data-bs-toggle="modal" data-bs-target="#authRequiredModal" title="Add to Cart">
+                                            <i class="fas fa-shopping-cart"></i>
+                                        </button>
+                                    @endauth
+                                </div>
 
                             <div class="related-new bg-secondary">New</div>
                             <div class="related-details">
