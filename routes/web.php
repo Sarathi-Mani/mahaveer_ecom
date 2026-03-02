@@ -7,6 +7,7 @@ use App\Http\Controllers\Frontend\ProductController;
 use App\Http\Controllers\Frontend\AboutController;
 use App\Http\Controllers\Frontend\AwardsController;
 use App\Http\Controllers\Frontend\ContactController;
+use App\Http\Controllers\Frontend\MobileAuthController;
 
 // Route::get('/', function () {
 //     return view('welcome');
@@ -34,6 +35,15 @@ Route::post('/contact/submit', [ContactController::class, 'submit'])
         ->name('contact.submit');
 Route::post('/search/suggestions', [ProductController::class, 'suggestions'])
         ->name('search.suggestions');
+
+Route::middleware('guest')->group(function () {
+    Route::get('/member/register', [MobileAuthController::class, 'showRegisterForm'])->name('member.register');
+    Route::post('/member/register', [MobileAuthController::class, 'register']);
+    Route::get('/member/login', [MobileAuthController::class, 'showLoginForm'])->name('member.login');
+    Route::post('/member/login', [MobileAuthController::class, 'sendLoginOtp'])->name('member.login.otp');
+    Route::get('/member/verify-otp', [MobileAuthController::class, 'showVerifyOtpForm'])->name('member.verify-otp');
+    Route::post('/member/verify-otp', [MobileAuthController::class, 'verifyOtp'])->name('member.verify-otp.submit');
+});
 
 Route::get('/dashboard', function () {
     return view('dashboard');

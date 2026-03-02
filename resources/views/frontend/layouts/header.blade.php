@@ -201,6 +201,23 @@
                     </div>
 
                     <div class="navbar-nav ms-auto">
+                        @guest
+                            <a href="{{ route('member.register') }}" class="btn btn-outline-light rounded-pill py-2 px-3 px-lg-3 me-2">
+                                Register
+                            </a>
+                            <a href="{{ route('member.login') }}" class="btn btn-outline-light rounded-pill py-2 px-3 px-lg-3 me-2">
+                                Login
+                            </a>
+                        @else
+                            <span class="text-white align-self-center me-2">Hi, {{ Auth::user()->name }}</span>
+                            <form method="POST" action="{{ route('logout') }}" class="d-inline me-2">
+                                @csrf
+                                <button type="submit" class="btn btn-outline-light rounded-pill py-2 px-3 px-lg-3">
+                                    Logout
+                                </button>
+                            </form>
+                        @endguest
+
                         <a href="tel:+919840648777" class="btn btn-primary rounded-pill py-2 px-4 px-lg-3">
                             <i class="fa fa-mobile-alt me-2"></i> +91 98406 48777
                         </a>
@@ -324,4 +341,3 @@ $(document).ready(function() {
     });
 });
 </script>
-
